@@ -1,0 +1,46 @@
+{{!
+
+Main page report template for the local_user_completion
+
+}}
+{{#permission}}
+    <h1>{{title}}</h1>
+    <h2>{{fullname}}</h2>
+    <table id="completioncourses" style="width: 90%">
+        <thead>
+        <tr style="text-transform: capitalize;">
+            {{#headers}}
+                <th>{{name}}</th>
+            {{/headers}}
+        </tr>
+        </thead>
+
+        <tbody>
+        {{#courses}}
+            <tr>
+                <td>{{{course_name}}}</td>
+                <td>{{completion_status}}</td>
+                <td>{{completion_datetime}}</td>
+                <td>
+                    <ul>{{#course_criteria}}
+                        <li>{{{criteria}}}</li>
+                    {{/course_criteria}}</ul>
+                </td>
+            </tr>
+        {{/courses}}
+
+        </tbody>
+    </table>
+    <style>
+        #completioncourses tbody tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+
+        #completioncourses tbody tr:nth-child(even) {
+            background-color: white;
+        }
+    </style>
+{{/permission}}
+{{^permission}}
+    {{#str}} nopermission, local_user_completion {{/str}}
+{{/permission}}
