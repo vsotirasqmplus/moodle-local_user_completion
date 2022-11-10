@@ -20,6 +20,9 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
+use core_user\fields;
+
 global $OUTPUT, $PAGE, $USER, $CFG, $DB;
 require_once(dirname(__FILE__, 3) . '/config.php');
 require_once('./locallib.php');
@@ -33,6 +36,8 @@ if (!is_siteadmin($USER)) {
         get_string('nopermission', LOCAL_USER_COMPLETION_STRING)
     );
 }
+
+
 try {
 // Prepare script data.
     $context = context_system::instance();
@@ -83,9 +88,9 @@ try {
     // These columns are always shown in the users list.
     $requiredcolumns = ['city', 'country', 'lastaccess'];
     // Extra columns containing the extra user fields, excluding the required columns (city and country, to be specific).
-    $extracolumns = get_extra_user_fields($context, $requiredcolumns);
+    $extracolumns = (fields::for_identity($context, false)->excluding(...$requiredcolumns))->get_required_fields();
     // Get all user name fields as an array.
-    $allusernamefields = get_all_user_name_fields(false, null, null, null, true);
+    $allusernamefields = local_user_completion_moodle4_get_all_user_name_fields(false, null, null, null, true);
     $columns = array_merge($allusernamefields, $extracolumns, $requiredcolumns);
 
     $fields = local_user_completion_table_fields($columns, $sort, $dir);

@@ -20,6 +20,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_user\fields;
+
 defined('MOODLE_INTERNAL') || die();
 
 const LOCAL_USER_COMPLETION_STRING = 'local_user_completion';
@@ -134,10 +136,12 @@ function local_user_completion_table(object $data): html_table
  */
 function local_user_completion_table_fields(array $columns, string $sort, string $dir): array
 {
-    global $OUTPUT;
+    global $CFG, $OUTPUT;
+    require_once($CFG->dirroot .'/user/classes/fields.php');
     $fields = [];
     foreach ($columns as $column) {
-        $string[$column] = get_user_field_name($column);
+        # $string[$column] = get_user_field_name($column);
+        $string[$column] = fields::get_display_name($column);
         if ($sort != $column) {
             $columnicon = "";
             if ($column == "lastaccess") {
@@ -162,4 +166,55 @@ function local_user_completion_table_fields(array $columns, string $sort, string
         $fields[$column] = "<a href='index.php?sort=$column&amp;dir=$columndir'>" . $string[$column] . "</a>$columnicon";
     }
     return $fields;
+}
+
+
+function local_user_completion_moodle4_get_all_user_name_fields(
+        $returnsql = false,
+        $tableprefix = null,
+        $prefix = null,
+        $fieldprefix = null,
+        $order = false){
+    $alternatenames = [];
+    foreach (fields::get_name_fields() as $field) {
+        $alternatenames[$field] = $field;
+    }
+
+    // Let's add a prefix to the array of user name fields if provided.
+    if ($prefix) {
+        foreach ($alternatenames as $key => $altname) {
+            $alternatenames[$key] = $prefix . $altname;
+        }
+    }
+
+    // If we want the end result to have firstname and lastname at the front / top of the result.
+    if ($order) {
+        // Move the last two elements (firstname, lastname) off the array and put them at the top.
+        for ($i = 0; $i < 2; $i++) {
+            // Get the last element.
+            $lastelement = end($alternatenames);
+            // Remove it from the array.
+            unset($alternatenames[$lastelement]);
+            // Put the element back on the top of the array.
+            $alternatenames = array_merge(array($lastelement => $lastelement), $alternatenames);
+        }
+    }
+
+    // Create an sql field snippet if requested.
+    if ($returnsql) {
+        if ($tableprefix) {
+            if ($fieldprefix) {
+                foreach ($alternatenames as $key => $altname) {
+                    $alternatenames[$key] = $tableprefix . '.' . $altname . ' AS ' . $fieldprefix . $altname;
+                }
+            } else {
+                foreach ($alternatenames as $key => $altname) {
+                    $alternatenames[$key] = $tableprefix . '.' . $altname;
+                }
+            }
+        }
+        $alternatenames = implode(',', $alternatenames);
+    }
+    return $alternatenames;
+
 }
